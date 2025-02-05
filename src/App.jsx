@@ -32,6 +32,7 @@ const App = () => {
             <Route path="/members/:id/edit" element={<PrivateRoute><EditMember /></PrivateRoute>} />
             <Route path="/members/:id" element={<PrivateRoute><ViewMember /></PrivateRoute>} /> 
             
+          
             {/* Ministry Routes */}
             <Route path="/ministries" element={<PrivateRoute><MinistryList /></PrivateRoute>} />
             <Route path="/ministries/add" element={<PrivateRoute><AddMinistry /></PrivateRoute>} />

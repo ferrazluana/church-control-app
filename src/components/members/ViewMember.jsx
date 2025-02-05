@@ -1,34 +1,64 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { getMembers } from '../../controllers/membersController';
 import Layout from '../Layout';
+import { getMembers } from '../../controllers/membersController';
+import { getMemberMinistries } from '../../controllers/ministryController';
+import { getMemberCourses } from '../../controllers/memberCoursesController';
+import AddNotePopup from './AddNotePopup';
+import { createNote } from '../../controllers/notesController';
+import { useAuth } from '../../context/AuthContext';
 
 const ViewMember = () => {
     const { id } = useParams();
+    const { user } = useAuth();
     const navigate = useNavigate();
     const [member, setMember] = useState(null);
+    const [ministries, setMinistries] = useState([]);
+    const [courses, setCourses] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [isPopupOpen, setPopupOpen] = useState(false);
+
+    const handleAddNote = async (text) => {
+        const memberId = id; // ID do membro atual
+        const userId = user ? user.id : null;
+        console.log('Member ID:', user.user_roles[0].roles.role_name);
+        try {
+            const newNote = await createNote({ text, member_id: memberId, user_id: userId });
+            console.log('Nota adicionada:', newNote);
+            // Aqui você pode adicionar lógica para atualizar o estado ou exibir a nova nota
+        } catch (error) {
+            console.error('Erro ao adicionar nota:', error);
+        }
+    };
 
     useEffect(() => {
-        const fetchMember = async () => {
+        const fetchData = async () => {
             try {
                 const members = await getMembers();
                 const foundMember = members.find(m => m.id === parseInt(id));
+
                 if (foundMember) {
                     setMember(foundMember);
+                    
+                    // Fetch member's ministries
+                    const memberMinistries = await getMemberMinistries(foundMember.id);
+                    setMinistries(memberMinistries);
+
+                    // Fetch member's courses
+                    const memberCourses = await getMemberCourses(foundMember.id);
+                    setCourses(memberCourses);
+                    
+                    setLoading(false);
                 } else {
-                    alert('Membro não encontrado');
                     navigate('/members');
                 }
             } catch (error) {
                 console.error('Error fetching member:', error);
-                alert('Erro ao carregar dados do membro');
-                navigate('/members');
-            } finally {
                 setLoading(false);
             }
         };
-        fetchMember();
+
+        fetchData();
     }, [id, navigate]);
 
     if (loading) {
@@ -84,8 +114,16 @@ const ViewMember = () => {
                         >
                             Editar
                         </Link>
+                        {(user && (user.user_roles[0].roles.role_name === 'master' || user.user_roles[0].roles.role_name === 'pastor')) && (
+                            <button onClick={() => setPopupOpen(true)} className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500">
+                                Add Anotação
+                            </button>
+                        )}
+
                     </div>
                 </div>
+
+                <AddNotePopup isOpen={isPopupOpen} onClose={() => setPopupOpen(false)} onAddNote={handleAddNote} />
 
                 <div className="space-y-6">
                     {/* Personal Information */}
@@ -93,7 +131,7 @@ const ViewMember = () => {
                         <InfoItem label="Nome" value={member.name} />
                         <InfoItem
                             label="Data de Nascimento"
-                            value={member.birth_date ? new Date(member.birth_date).toLocaleDateString('pt-BR') : 'Não informado'}
+                            value={member.date_of_birth ? new Date(member.date_of_birth).toLocaleDateString('pt-BR') : 'Não informado'}
                         />
                         <InfoItem label="Telefone" value={member.phone_number || 'Não informado'} />
                         <InfoItem label="Estado Civil" value={
@@ -105,8 +143,70 @@ const ViewMember = () => {
                             }[member.marital_status] || member.marital_status || 'Não informado'
                         } />
                         <InfoItem label="Endereço" value={member.address || 'Não informado'} />
-                        <InfoItem label="RG" value={member.rg || 'Não informado'} />
-                        <InfoItem label="CPF" value={member.cpf || 'Não informado'} />
+                        <InfoItem label="Linguagem de Amor" value={
+                            Array.isArray(member.love_language) && member.love_language.length > 0
+                                ? member.love_language
+                                    .map(lang => ({
+                                        'tempo': 'Tempo de Qualidade',
+                                        'presentes': 'Receber Presentes',
+                                        'atos': 'Atos de Serviço',
+                                        'palavras': 'Palavras de Afirmação',
+                                        'toque': 'Toque Físico'
+                                    }[lang] || lang))
+                                    .join(', ')
+                                : 'Não informado'
+                        } />
+                        <InfoItem label="Personalidade" value={
+                            (() => {
+                                return Array.isArray(member.personality_test) && member.personality_test.length > 0
+                                    ? member.personality_test
+                                        .map(type => ({
+                                            'Determinado': 'Determinado',
+                                            'Influenciador': 'Influenciador',
+                                            'Seguro': 'Seguro',
+                                            'Cauteloso': 'Cauteloso'
+                                        }[type] || type))
+                                        .join(', ')
+                                    : 'Não informado';
+                            })()
+                        } />
+                    </InfoSection>
+
+                    {/* Ministries Section */}
+                    <InfoSection title="Ministérios">
+                        <div className="px-4 py-4">
+                            {ministries && ministries.length > 0 ? (
+                                <div className="space-y-2">
+                                    {ministries.map((ministry) => (
+                                        <p key={ministry.id} className="text-sm text-gray-900">
+                                            <span className="font-medium">{ministry.name}</span>
+                                            {ministry.leader && (
+                                                <span className="text-gray-600">
+                                                    {" - Líder: "}{ministry.leader.name}
+                                                </span>
+                                            )}
+                                        </p>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-sm text-gray-500">Não participa de nenhum ministério</p>
+                            )}
+                        </div>
+                    </InfoSection>
+
+                    {/* Courses Section */}
+                    <InfoSection title="Cursos">
+                        <div className="px-4 py-4">
+                            {courses && courses.length > 0 ? (
+                                <ul>
+                                    {courses.map(course => (
+                                        <li key={course.id}>{course.courses.name}</li>
+                                    ))}
+                                </ul>
+                            ) : (
+                                <p className="text-sm text-gray-500">Não está matriculado em nenhum curso</p>
+                            )}
+                        </div>
                     </InfoSection>
 
                     {/* Church Information */}

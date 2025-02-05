@@ -98,8 +98,17 @@ export const removeMemberFromMinistry = async (memberId) => {
 export const getMemberMinistries = async (memberId) => {
     const { data, error } = await supabase
         .from('memberministries')
-        .select('ministry_id')
+        .select(`
+            ministry:ministry(
+                id,
+                name,
+                leader:members!ministry_leader_fkey(
+                    id,
+                    name
+                )
+            )
+        `)
         .eq('member_id', memberId);
     if (error) throw error;
-    return data;
+    return data.map(item => item.ministry);
 };

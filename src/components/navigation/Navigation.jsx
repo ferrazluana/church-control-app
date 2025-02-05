@@ -8,9 +8,7 @@ const Navigation = () => {
         { path: '/home', icon: '🏠', label: 'Home' },
         { path: '/members', icon: '👥', label: 'Membros' },
         { path: '/ministries', icon: '🏛️', label: 'Ministérios' },
-        { path: '/users', icon: '👤', label: 'Usuários' },
-        { path: '/events', icon: '📅', label: 'Eventos' },
-        { path: '/finance', icon: '💰', label: 'Finanças' },
+        { path: '/users', icon: '👤', label: 'Usuários' }
     ];
 
     menuItems.push({ path: '/courses', icon: '📚', label: 'Cursos' });

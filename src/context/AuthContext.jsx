@@ -181,7 +181,7 @@ export const AuthProvider = ({ children }) => {
             if (!isValidPassword) {
                 throw new Error('Invalid password');
             }
-
+         
             // Se chegou aqui, o login foi bem sucedido
             setUser(users);
             return users;
