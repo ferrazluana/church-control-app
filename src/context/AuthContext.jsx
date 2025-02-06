@@ -14,14 +14,13 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(() => {
-        // Try to get the user from localStorage when the component mounts
+        // Recupera o usuário do localStorage ao inicializar o contexto
         const savedUser = localStorage.getItem('user');
         return savedUser ? JSON.parse(savedUser) : null;
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    // Update localStorage whenever user state changes
     useEffect(() => {
         if (user) {
             localStorage.setItem('user', JSON.stringify(user));
@@ -184,6 +183,7 @@ export const AuthProvider = ({ children }) => {
          
             // Se chegou aqui, o login foi bem sucedido
             setUser(users);
+            localStorage.setItem('user', JSON.stringify(users));
             return users;
 
         } catch (error) {
