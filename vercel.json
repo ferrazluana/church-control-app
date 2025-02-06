@@ -11,8 +11,5 @@
       "src": "/(.*)",
       "dest": "src/app.jsx"
     }
-  ],
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
