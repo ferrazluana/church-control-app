@@ -91,7 +91,7 @@ const AddMinistry = () => {
                                     value={formData.leader}
                                     onChange={handleChange}
                                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-sky-500 focus:border-sky-500"
-                                    required
+                                    
                                 >
                                     <option value="">Selecione um líder</option>
                                     {members.map(member => (
