@@ -20,7 +20,7 @@ const NotesList = ({ notes, deleteNote, id, user, selectNotesByMember, setNotes 
             <div className="grid grid-cols-1 gap-4">
                 {notes && notes.length > 0 ? (
                     notes.map(note => (
-                        <div key={note.id} className="p-4 border rounded-lg shadow-md flex justify-between align-items-center">
+                        <div key={note.id} className="p-4 border rounded-lg shadow-md flex justify-between items-center">
                             <span className='px-2'>
                                 <p>{note.text}</p>
                                 <p className="text-gray-500 text-sm">Criado em: {new Date(note.date).toLocaleString('pt-BR')}</p>
