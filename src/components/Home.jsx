@@ -12,7 +12,7 @@ const Home = () => {
                 </div>
 
                 {/* Quick Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div className="bg-white rounded-xl p-6 shadow-sm border border-sky-100 hover:shadow-md transition-shadow">
                         <div className="flex items-center justify-between mb-4">
                             <div className="bg-sky-100 p-3 rounded-lg">
@@ -56,12 +56,12 @@ const Home = () => {
                         <h3 className="text-lg font-semibold text-sky-900">28</h3>
                         <p className="text-sm text-sky-600">Novos Membros</p>
                     </div>
-                </div>
+                </div> */}
 
                 {/* Main Content Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1">
+                {/* <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1"> */}
                     {/* Próximos Eventos */}
-                    <div className="bg-white rounded-xl shadow-sm border border-sky-100 overflow-hidden h-full flex flex-col">
+                    {/* <div className="bg-white rounded-xl shadow-sm border border-sky-100 overflow-hidden h-full flex flex-col">
                         <div className="p-6 flex-1">
                             <h3 className="text-lg font-semibold text-sky-900 mb-4">Próximos Eventos</h3>
                             <div className="space-y-4">
@@ -92,10 +92,10 @@ const Home = () => {
                                 Ver todos os eventos →
                             </button>
                         </div>
-                    </div>
+                    </div> */}
 
                     {/* Atividades Recentes */}
-                    <div className="bg-white rounded-xl shadow-sm border border-sky-100 overflow-hidden h-full flex flex-col">
+                    {/* <div className="bg-white rounded-xl shadow-sm border border-sky-100 overflow-hidden h-full flex flex-col">
                         <div className="p-6 flex-1">
                             <h3 className="text-lg font-semibold text-sky-900 mb-4">Atividades Recentes</h3>
                             <div className="space-y-4">
@@ -126,10 +126,10 @@ const Home = () => {
                                 Ver todas as atividades →
                             </button>
                         </div>
-                    </div>
+                    </div> */}
 
                     {/* Ações Rápidas */}
-                    <div className="bg-white rounded-xl shadow-sm border border-sky-100 h-full flex flex-col">
+                    {/* <div className="bg-white rounded-xl shadow-sm border border-sky-100 h-full flex flex-col">
                         <div className="p-6 flex-1">
                             <h3 className="text-lg font-semibold text-sky-900 mb-4">Ações Rápidas</h3>
                             <div className="grid grid-cols-2 gap-4">
@@ -152,7 +152,7 @@ const Home = () => {
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> */}
             </div>
         </Layout>
     );
