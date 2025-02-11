@@ -5,8 +5,9 @@ import { getMembers } from '../../controllers/membersController';
 import { getMemberMinistries } from '../../controllers/ministryController';
 import { getMemberCourses } from '../../controllers/memberCoursesController';
 import AddNotePopup from './AddNotePopup';
-import { createNote } from '../../controllers/notesController';
+import { createNote, selectNotesByMember, deleteNote } from '../../controllers/notesController';
 import { useAuth } from '../../context/AuthContext';
+import NotesList from './NotesList';
 
 const ViewMember = () => {
     const { id } = useParams();
@@ -15,19 +16,23 @@ const ViewMember = () => {
     const [member, setMember] = useState(null);
     const [ministries, setMinistries] = useState([]);
     const [courses, setCourses] = useState([]);
+    const [notes, setNotes] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState('personal');
     const [isPopupOpen, setPopupOpen] = useState(false);
 
     const handleAddNote = async (text) => {
         const memberId = id; // ID do membro atual
         const userId = user ? user.id : null;
-        console.log('Member ID:', user.user_roles[0].roles.role_name);
         try {
-            const newNote = await createNote({ text, member_id: memberId, user_id: userId });
-            console.log('Nota adicionada:', newNote);
-            // Aqui você pode adicionar lógica para atualizar o estado ou exibir a nova nota
+            await createNote({ text, member_id: memberId, user_id: userId });
+            // Fetch updated notes
+            const memberNotes = await selectNotesByMember(memberId, userId);
+            setNotes(memberNotes);
+            // Switch to notes tab
+            setActiveTab('notes');
         } catch (error) {
-            console.error('Erro ao adicionar nota:', error);
+            console.error('Error adding note:', error);
         }
     };
 
@@ -47,6 +52,10 @@ const ViewMember = () => {
                     // Fetch member's courses
                     const memberCourses = await getMemberCourses(foundMember.id);
                     setCourses(memberCourses);
+
+                    // Fetch notes for the member
+                    const memberNotes = await selectNotesByMember(foundMember.id, user.id);
+                    setNotes(memberNotes);
                     
                     setLoading(false);
                 } else {
@@ -59,7 +68,7 @@ const ViewMember = () => {
         };
 
         fetchData();
-    }, [id, navigate]);
+    }, [id, user.id, navigate]);
 
     if (loading) {
         return (
@@ -119,140 +128,166 @@ const ViewMember = () => {
                                 Add Anotação
                             </button>
                         )}
-
                     </div>
                 </div>
 
                 <AddNotePopup isOpen={isPopupOpen} onClose={() => setPopupOpen(false)} onAddNote={handleAddNote} />
 
-                <div className="space-y-6">
-                    {/* Personal Information */}
-                    <InfoSection title="Informações Pessoais">
-                        <InfoItem label="Nome" value={member.name} />
-                        <InfoItem
-                            label="Data de Nascimento"
-                            value={member.date_of_birth ? new Date(member.date_of_birth).toLocaleDateString('pt-BR') : 'Não informado'}
-                        />
-                        <InfoItem label="Telefone" value={member.phone_number || 'Não informado'} />
-                        <InfoItem label="Estado Civil" value={
-                            {
-                                'single': 'Solteiro(a)',
-                                'married': 'Casado(a)',
-                                'divorced': 'Divorciado(a)',
-                                'widowed': 'Viúvo(a)'
-                            }[member.marital_status] || member.marital_status || 'Não informado'
-                        } />
-                        <InfoItem label="Endereço" value={member.address || 'Não informado'} />
-                        <InfoItem label="Linguagem de Amor" value={
-                            Array.isArray(member.love_language) && member.love_language.length > 0
-                                ? member.love_language
-                                    .map(lang => ({
-                                        'tempo': 'Tempo de Qualidade',
-                                        'presentes': 'Receber Presentes',
-                                        'atos': 'Atos de Serviço',
-                                        'palavras': 'Palavras de Afirmação',
-                                        'toque': 'Toque Físico'
-                                    }[lang] || lang))
-                                    .join(', ')
-                                : 'Não informado'
-                        } />
-                        <InfoItem label="Personalidade" value={
-                            (() => {
-                                return Array.isArray(member.personality_test) && member.personality_test.length > 0
-                                    ? member.personality_test
-                                        .map(type => ({
-                                            'Determinado': 'Determinado',
-                                            'Influenciador': 'Influenciador',
-                                            'Seguro': 'Seguro',
-                                            'Cauteloso': 'Cauteloso'
-                                        }[type] || type))
-                                        .join(', ')
-                                    : 'Não informado';
-                            })()
-                        } />
-                    </InfoSection>
+                <nav className="flex space-x-4 mb-6">
+                    <button onClick={() => setActiveTab('personal')} className={`text-sm font-medium ${activeTab === 'personal' ? 'text-sky-600' : 'text-gray-600'}`}>Informações Pessoais</button>
+                    <button onClick={() => setActiveTab('ministry')} className={`text-sm font-medium ${activeTab === 'ministry' ? 'text-sky-600' : 'text-gray-600'}`}>Ministério</button>
+                    <button onClick={() => setActiveTab('courses')} className={`text-sm font-medium ${activeTab === 'courses' ? 'text-sky-600' : 'text-gray-600'}`}>Cursos</button>
+                    <button onClick={() => setActiveTab('notes')} className={`text-sm font-medium ${activeTab === 'notes' ? 'text-sky-600' : 'text-gray-600'}`}>Anotações</button>
+                </nav>
 
-                    {/* Ministries Section */}
-                    <InfoSection title="Ministérios">
-                        <div className="px-4 py-4">
-                            {ministries && ministries.length > 0 ? (
-                                <div className="space-y-2">
-                                    {ministries.map((ministry) => (
-                                        <p key={ministry.id} className="text-sm text-gray-900">
-                                            <span className="font-medium">{ministry.name}</span>
-                                            {ministry.leader && (
-                                                <span className="text-gray-600">
-                                                    {" - Líder: "}{ministry.leader.name}
-                                                </span>
-                                            )}
-                                        </p>
-                                    ))}
+                <div>
+                    {activeTab === 'personal' && (
+                        <div>
+                            {/* Personal Information */}
+                            <InfoSection title="Informações Pessoais">
+                                <InfoItem label="Nome" value={member.name} />
+                                <InfoItem
+                                    label="Data de Nascimento"
+                                    value={member.date_of_birth ? new Date(member.date_of_birth).toLocaleDateString('pt-BR') : 'Não informado'}
+                                />
+                                <InfoItem label="Telefone" value={member.phone_number || 'Não informado'} />
+                                <InfoItem label="Estado Civil" value={
+                                    {
+                                        'single': 'Solteiro(a)',
+                                        'married': 'Casado(a)',
+                                        'divorced': 'Divorciado(a)',
+                                        'widowed': 'Viúvo(a)'
+                                    }[member.marital_status] || member.marital_status || 'Não informado'
+                                } />
+                                <InfoItem label="Endereço" value={member.address || 'Não informado'} />
+                                <InfoItem label="Linguagem de Amor" value={
+                                    Array.isArray(member.love_language) && member.love_language.length > 0
+                                        ? member.love_language
+                                            .map(lang => ({
+                                                'tempo': 'Tempo de Qualidade',
+                                                'presentes': 'Receber Presentes',
+                                                'atos': 'Atos de Serviço',
+                                                'palavras': 'Palavras de Afirmação',
+                                                'toque': 'Toque Físico'
+                                            }[lang] || lang))
+                                            .join(', ')
+                                        : 'Não informado'
+                                } />
+                                <InfoItem label="Personalidade" value={
+                                    (() => {
+                                        return Array.isArray(member.personality_test) && member.personality_test.length > 0
+                                            ? member.personality_test
+                                                .map(type => ({
+                                                    'Determinado': 'Determinado',
+                                                    'Influenciador': 'Influenciador',
+                                                    'Seguro': 'Seguro',
+                                                    'Cauteloso': 'Cauteloso'
+                                                }[type] || type))
+                                                .join(', ')
+                                            : 'Não informado';
+                                    })()
+                                } />
+                            </InfoSection>
+
+                            {/* Church Information */}
+                            <InfoSection title="Informações da Igreja">
+                                <InfoItem
+                                    label="Batizado"
+                                    value={member.baptized ? 'Sim' : 'Não'}
+                                />
+                                {member.baptized && (
+                                    <>
+                                        <InfoItem
+                                            label="Data do Batismo"
+                                            value={member.baptism_date ? new Date(member.baptism_date).toLocaleDateString('pt-BR') : 'Não informado'}
+                                        />
+                                        <InfoItem
+                                            label="Igreja do Batismo"
+                                            value={member.church_of_baptism || 'Não informado'}
+                                        />
+                                    </>
+                                )}
+                            </InfoSection>
+
+                            {/* Leadership Information */}
+                            <InfoSection title="Informações de Liderança">
+                                <InfoItem
+                                    label="Cargo na Igreja"
+                                    value={
+                                        [
+                                            member.is_pastor && 'Pastor',
+                                            member.is_leader && 'Líder',
+                                            member.is_co_leader && 'Co-líder'
+                                        ].filter(Boolean).join(', ') || 'Membro'
+                                    }
+                                />
+                                <InfoItem
+                                    label="Status"
+                                    value={
+                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${member.is_active
+                                                ? 'bg-green-100 text-green-800'
+                                                : 'bg-gray-100 text-gray-800'
+                                            }`}>
+                                            {member.is_active ? 'Ativo' : 'Inativo'}
+                                        </span>
+                                    }
+                                />
+                            </InfoSection>
+                        </div>
+                    )}
+                    {activeTab === 'ministry' && (
+                        <div>
+                            {/* Ministries Section */}
+                            <InfoSection title="Ministérios">
+                                <div className="px-4 py-4">
+                                    {ministries && ministries.length > 0 ? (
+                                        <div className="space-y-2">
+                                            {ministries.map((ministry) => (
+                                                <p key={ministry.id} className="text-sm text-gray-900">
+                                                    <span className="font-medium">{ministry.name}</span>
+                                                    {ministry.leader && (
+                                                        <span className="text-gray-600">
+                                                            {" - Líder: "}{ministry.leader.name}
+                                                        </span>
+                                                    )}
+                                                </p>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <p className="text-sm text-gray-500">Não participa de nenhum ministério</p>
+                                    )}
                                 </div>
-                            ) : (
-                                <p className="text-sm text-gray-500">Não participa de nenhum ministério</p>
-                            )}
+                            </InfoSection>
                         </div>
-                    </InfoSection>
-
-                    {/* Courses Section */}
-                    <InfoSection title="Cursos">
-                        <div className="px-4 py-4">
-                            {courses && courses.length > 0 ? (
-                                <ul>
-                                    {courses.map(course => (
-                                        <li key={course.id}>{course.courses.name}</li>
-                                    ))}
-                                </ul>
-                            ) : (
-                                <p className="text-sm text-gray-500">Não está matriculado em nenhum curso</p>
-                            )}
+                    )}
+                    {activeTab === 'courses' && (
+                        <div>
+                            {/* Courses Section */}
+                            <InfoSection title="Cursos">
+                                <div className="px-4 py-4">
+                                    {courses && courses.length > 0 ? (
+                                        <ul>
+                                            {courses.map(course => (
+                                                <li key={course.id}>{course.courses.name}</li>
+                                            ))}
+                                        </ul>
+                                    ) : (
+                                        <p className="text-sm text-gray-500">Não está matriculado em nenhum curso</p>
+                                    )}
+                                </div>
+                            </InfoSection>
                         </div>
-                    </InfoSection>
-
-                    {/* Church Information */}
-                    <InfoSection title="Informações da Igreja">
-                        <InfoItem
-                            label="Batizado"
-                            value={member.baptized ? 'Sim' : 'Não'}
-                        />
-                        {member.baptized && (
-                            <>
-                                <InfoItem
-                                    label="Data do Batismo"
-                                    value={member.baptism_date ? new Date(member.baptism_date).toLocaleDateString('pt-BR') : 'Não informado'}
-                                />
-                                <InfoItem
-                                    label="Igreja do Batismo"
-                                    value={member.church_of_baptism || 'Não informado'}
-                                />
-                            </>
-                        )}
-                    </InfoSection>
-
-                    {/* Leadership Information */}
-                    <InfoSection title="Informações de Liderança">
-                        <InfoItem
-                            label="Cargo na Igreja"
-                            value={
-                                [
-                                    member.is_pastor && 'Pastor',
-                                    member.is_leader && 'Líder',
-                                    member.is_co_leader && 'Co-líder'
-                                ].filter(Boolean).join(', ') || 'Membro'
-                            }
-                        />
-                        <InfoItem
-                            label="Status"
-                            value={
-                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${member.is_active
-                                        ? 'bg-green-100 text-green-800'
-                                        : 'bg-gray-100 text-gray-800'
-                                    }`}>
-                                    {member.is_active ? 'Ativo' : 'Inativo'}
-                                </span>
-                            }
-                        />
-                    </InfoSection>
+                    )}
+                    {activeTab === 'notes' && (
+                        <div>
+                            {/* Notes Section */}
+                            <InfoSection title="Anotações">
+                                <div className="px-4 py-4">
+                                    <NotesList notes={notes} deleteNote={deleteNote} id={id} user={user} selectNotesByMember={selectNotesByMember} setNotes={setNotes} />
+                                </div>
+                            </InfoSection>
+                        </div>
+                    )}
                 </div>
             </div>
         </Layout>
