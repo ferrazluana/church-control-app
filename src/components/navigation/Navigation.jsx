@@ -1,8 +1,9 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';   
+import { Link, useLocation } from 'react-router-dom';
 
 const Navigation = () => {
     const location = useLocation();
+
 
     const menuItems = [
         { path: '/home', icon: '🏠', label: 'Home' },
@@ -26,22 +27,14 @@ const Navigation = () => {
                 <div className="flex-1 overflow-y-auto py-4">
                     <ul className="space-y-1 px-3">
                         {menuItems.map((item) => (
-                            <li key={item.path}>
-                                <Link
-                                    to={item.path}
-                                    className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                        location.pathname === item.path
-                                            ? 'bg-sky-50 text-sky-700'
-                                            : 'text-sky-600 hover:bg-sky-50 hover:text-sky-700'
-                                    }`}
-                                >
-                                    <span className="w-5 h-5 mr-3 flex items-center justify-center">
-                                        {item.icon}
-                                    </span>
+                            <li key={item.path} className={location.pathname === item.path ? 'active' : ''}>
+                                <Link to={item.path} className="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100">
+                                    <span className="mr-3">{item.icon}</span>
                                     {item.label}
                                 </Link>
                             </li>
                         ))}
+
                     </ul>
                 </div>
             </div>

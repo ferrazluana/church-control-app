@@ -8,6 +8,8 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const AuthContext = createContext({});
 
+export { AuthContext };
+
 export const useAuth = () => {
     return useContext(AuthContext);
 };
