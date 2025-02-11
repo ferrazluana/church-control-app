@@ -1,7 +1,15 @@
 import React from 'react';
 import Navigation from './navigation/Navigation';
+import { useAuth } from '../context/AuthContext';
+
 
 const Layout = ({ children }) => {
+    const { signOut } = useAuth();
+
+    const handleLogout = () => {
+        signOut();
+    };
+
     return (
         <div className="flex min-h-screen bg-sky-50">
             <Navigation />
@@ -16,7 +24,18 @@ const Layout = ({ children }) => {
                                     <button className="p-2 text-sky-600 hover:text-sky-700">
                                         🔔
                                     </button>
+                                   
                                 </span>
+
+                                <button
+                                        onClick={handleLogout}
+                                        className="flex items-center p-2 transition-colors text-sky-600 hover:text-sky-700"
+                                    >
+                                        <span className="w-5 h-5 mr-3 flex items-center justify-center">
+                                            ❌
+                                        </span>
+                                        Logout
+                                    </button>
                             </div>
                         </div>
                     </div>
