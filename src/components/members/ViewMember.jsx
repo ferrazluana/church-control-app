@@ -8,6 +8,7 @@ import AddNotePopup from './AddNotePopup';
 import { createNote, selectNotesByMember, deleteNote } from '../../controllers/notesController';
 import { useAuth } from '../../context/AuthContext';
 import NotesList from './NotesList';
+import { PencilIcon, PlusIcon } from '@heroicons/react/24/outline';
 
 const ViewMember = () => {
     const { id } = useParams();
@@ -44,7 +45,7 @@ const ViewMember = () => {
 
                 if (foundMember) {
                     setMember(foundMember);
-                    
+
                     // Fetch member's ministries
                     const memberMinistries = await getMemberMinistries(foundMember.id);
                     setMinistries(memberMinistries);
@@ -56,7 +57,7 @@ const ViewMember = () => {
                     // Fetch notes for the member
                     const memberNotes = await selectNotesByMember(foundMember.id, user.id);
                     setNotes(memberNotes);
-                    
+
                     setLoading(false);
                 } else {
                     navigate('/members');
@@ -97,15 +98,42 @@ const ViewMember = () => {
                         {/* Personal Information Section */}
                         <div className="md:col-span-1 bg-white shadow rounded-lg p-6">
                             <div className="flex flex-col items-center mb-6">
-                                <img 
-                                    src={member.photo || '/default-avatar.png'} 
-                                    alt={member.name} 
-                                    className="w-32 h-32 rounded-full object-cover mb-4"
-                                />
+                                <div className="flex items-center justify-end w-full">
+                                    <div></div>
+                                    <Link
+                                        to={`/members/${member.id}/edit`}
+                                        className="
+                                            text-sky-600 
+                                            hover:text-sky-800 
+                                            hover:bg-sky-50 
+                                            p-2 
+                                            rounded-full 
+                                            transition-colors 
+                                            duration-200
+                                        "
+                                        title="Editar Membro"
+                                    >
+                                        <PencilIcon className="h-6 w-6" />
+                                    </Link>
+
+                                    <button
+                                        onClick={() => setPopupOpen(true)}
+                                        className=" text-sky-600 
+                                            hover:text-sky-800 
+                                            hover:bg-sky-50 
+                                            p-2 
+                                            rounded-full 
+                                            transition-colors 
+                                            duration-200"
+                                            title="Adicionar Anotação"
+                                    >
+                                        <PlusIcon className="h-6 w-6" />
+                                    </button>
+                                </div>
                                 <h2 className="text-2xl font-bold text-gray-800">{member.name}</h2>
                                 <p className="text-gray-600">{member.email}</p>
                             </div>
-                            
+
                             <div className="space-y-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700">Telefone</label>
@@ -114,8 +142,24 @@ const ViewMember = () => {
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700">Data de Nascimento</label>
                                     <p className="mt-1 text-sm text-gray-900">
-                                        {member.date_of_birth 
-                                            ? new Date(member.date_of_birth).toLocaleDateString('pt-BR') 
+                                        {member.date_of_birth
+                                            ? new Date(member.date_of_birth).toLocaleDateString('pt-BR')
+                                            : 'Não informado'}
+                                    </p>
+                                </div>
+
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Batismo</label>
+                                    <p className="mt-1 text-sm text-gray-900">
+                                        {member.baptized ? 'Batizado' : 'Não batizado'}
+                                    </p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Data do Batismo</label>
+                                    <p className="mt-1 text-sm text-gray-900">
+                                        {member.baptism_date
+                                            ? new Date(member.baptism_date).toLocaleDateString('pt-BR')
                                             : 'Não informado'}
                                     </p>
                                 </div>
@@ -135,8 +179,8 @@ const ViewMember = () => {
                                             text-sm 
                                             font-medium 
                                             whitespace-nowrap
-                                            ${activeTab === tab 
-                                                ? 'border-b-2 border-sky-500 text-sky-600' 
+                                            ${activeTab === tab
+                                                ? 'border-b-2 border-sky-500 text-sky-600'
                                                 : 'text-gray-500 hover:text-gray-700'}
                                         `}
                                     >
@@ -166,6 +210,20 @@ const ViewMember = () => {
                                                         'widowed': 'Viúvo(a)'
                                                     }[member.marital_status] || member.marital_status || 'Não informado'
                                                 }
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700">Nome do Cônjuge</label>
+                                            <p className="mt-1 text-sm text-gray-900">
+                                                {member.spouse_name || 'Não informado'}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700">Data do Casamento</label>
+                                            <p className="mt-1 text-sm text-gray-900">
+                                                {member.marriage_date
+                                                    ? new Date(member.marriage_date).toLocaleDateString('pt-BR')
+                                                    : 'Não informado'}
                                             </p>
                                         </div>
                                         <div>
@@ -202,6 +260,33 @@ const ViewMember = () => {
                                                 })()}
                                             </p>
                                         </div>
+                                        {member.is_pastor && (
+                                            <div>
+                                                <div className="mt-1">
+                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                                        Pastor
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        )}
+                                        {member.is_leader && (
+                                            <div>
+                                                <div className="mt-1">
+                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                                        Líder
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        )}
+                                        {member.is_co_leader && (
+                                            <div>
+                                                <div className="mt-1">
+                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                                        Co-Líder
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
 
@@ -210,8 +295,8 @@ const ViewMember = () => {
                                         {ministries.length > 0 ? (
                                             <ul className="space-y-2">
                                                 {ministries.map((ministry) => (
-                                                    <li 
-                                                        key={ministry.id} 
+                                                    <li
+                                                        key={ministry.id}
                                                         className="bg-gray-100 p-3 rounded-md"
                                                     >
                                                         {ministry.name}
@@ -229,8 +314,8 @@ const ViewMember = () => {
                                         {courses.length > 0 ? (
                                             <ul className="space-y-2">
                                                 {courses.map((course) => (
-                                                    <li 
-                                                        key={course.id} 
+                                                    <li
+                                                        key={course.id}
                                                         className="bg-gray-100 p-3 rounded-md"
                                                     >
                                                         {course.courses.name}
@@ -246,20 +331,20 @@ const ViewMember = () => {
                                 {activeTab === 'notes' && (
                                     <div>
                                         <div className="flex justify-end mb-4">
-                                            <button 
-                                                onClick={() => setPopupOpen(true)} 
+                                            <button
+                                                onClick={() => setPopupOpen(true)}
                                                 className="bg-sky-500 text-white px-4 py-2 rounded hover:bg-sky-600"
                                             >
-                                                Adicionar Nota
+                                                Adicionar Anotação
                                             </button>
                                         </div>
-                                        <NotesList 
-                                            notes={notes} 
-                                            deleteNote={deleteNote} 
-                                            id={id} 
-                                            user={user} 
-                                            selectNotesByMember={selectNotesByMember} 
-                                            setNotes={setNotes} 
+                                        <NotesList
+                                            notes={notes}
+                                            deleteNote={deleteNote}
+                                            id={id}
+                                            user={user}
+                                            selectNotesByMember={selectNotesByMember}
+                                            setNotes={setNotes}
                                         />
                                     </div>
                                 )}
@@ -274,9 +359,9 @@ const ViewMember = () => {
 
                 {/* Add Note Popup */}
                 {isPopupOpen && (
-                    <AddNotePopup 
-                        isOpen={isPopupOpen} 
-                        onClose={() => setPopupOpen(false)} 
+                    <AddNotePopup
+                        isOpen={isPopupOpen}
+                        onClose={() => setPopupOpen(false)}
                         onAddNote={handleAddNote}
                     />
                 )}
