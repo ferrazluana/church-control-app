@@ -67,8 +67,6 @@ const Layout = ({ children }) => {
                     transition-all 
                     duration-300 
                     ease-in-out
-                    lg:ml-64 
-                    md:ml-16 
                     ml-0 
                     p-4 
                     sm:p-6 
